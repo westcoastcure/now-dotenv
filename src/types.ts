@@ -53,6 +53,12 @@ export interface NowDotenvOptions {
    */
   build?: boolean
   /**
+   * team name when using team instead of user
+   *
+   * @default null
+   */
+  team?: string | null
+  /**
    * generate global typescript typings for process.env at provided path
    */
   codegen?: string
@@ -68,6 +74,10 @@ export interface NowSecret {
 
 export interface ListSecretsResponse {
   secrets: NowSecret[]
+}
+
+export interface Team {
+  id: string
 }
 
 export interface PackageJson {

@@ -78,6 +78,13 @@ cli.options({
     description: `Overwrite build.env section of now.stage.json (@default: false)`,
   },
 
+  team: {
+    alias: 'T',
+    required: false,
+    type: 'string',
+    description: `Team name (@default: false)`,
+  },
+
   codegen: {
     alias: 'c',
     required: false,
