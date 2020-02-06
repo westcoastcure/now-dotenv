@@ -25,6 +25,7 @@ export class NowDotenv {
       syncApi: true,
       syncJson: true,
       overwrite: false,
+      build: false,
       ...options,
     }
 
@@ -161,10 +162,19 @@ export class NowDotenv {
     if (!json.env) {
       json = { ...json, env: {} }
     }
+    if (this.options.build && (!json.build || !json.build.env)) {
+      if (!json.build) {
+        json = { ...json, build: {} }
+      }
+      json = { ...json, build: { ...json.build, env: {} } }
+    }
 
     Object.keys(this.envs).forEach(name => {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       json!.env![name] = '@' + this.formatName(name)
+      if (this.options.build) {
+        json!.build!.env![name] = '@' + this.formatName(name)
+      }
     })
 
     this.writeNowJson(json)
@@ -187,10 +197,19 @@ export class NowDotenv {
     if (!json.env) {
       json = { ...json, env: {} }
     }
+    if (this.options.build && (!json.build || !json.build.env)) {
+      if (!json.build) {
+        json = { ...json, build: {} }
+      }
+      json = { ...json, build: { ...json.build, env: {} } }
+    }
 
     Object.keys(this.envs).forEach(name => {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       json!.env![name] = '@' + this.formatName(name)
+      if (this.options.build) {
+        json!.build!.env![name] = '@' + this.formatName(name)
+      }
     })
 
     this.writeNowJson(json)

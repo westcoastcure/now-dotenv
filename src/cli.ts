@@ -71,6 +71,13 @@ cli.options({
     description: `Overwrite whole now.stage.json (@default: false)`,
   },
 
+  build: {
+    alias: 'b',
+    required: false,
+    type: 'boolean',
+    description: `Overwrite build.env section of now.stage.json (@default: false)`,
+  },
+
   codegen: {
     alias: 'c',
     required: false,

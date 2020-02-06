@@ -47,6 +47,12 @@ export interface NowDotenvOptions {
    */
   overwrite?: boolean
   /**
+   * should overwrite build.env of now.stage.json with now.json
+   *
+   * @default false
+   */
+  build?: boolean
+  /**
    * generate global typescript typings for process.env at provided path
    */
   codegen?: string
@@ -73,6 +79,11 @@ export interface NowJson {
   name?: string
   env?: {
     [name: string]: string
+  }
+  build?: {
+    env?: {
+      [name: string]: string
+    }
   }
 }
 
