@@ -3,7 +3,7 @@ import { join, basename } from 'path'
 import { readFileSync, writeFileSync } from 'fs'
 import fetch, { Response } from 'node-fetch'
 import dotenv from 'dotenv'
-import { NowDotenvOptions, ListSecretsResponse, NowSecret, PackageJson, NowJson, Envs } from './types'
+import { NowDotenvOptions, ListSecretsResponse, NowSecret, PackageJson, NowJson, Envs, Team } from './types'
 
 // API
 // https://zeit.co/docs/api#endpoints/secrets
@@ -18,6 +18,7 @@ export class NowDotenv {
   nowJsonName: string
   nowJsonPath: string
   token: string
+  teamId: string | null
 
   constructor(options: NowDotenvOptions) {
     this.options = {
@@ -26,6 +27,7 @@ export class NowDotenv {
       syncJson: true,
       overwrite: false,
       build: false,
+      team: null,
       ...options,
     }
 
@@ -44,6 +46,8 @@ export class NowDotenv {
       'Content-Type': 'application/json',
     }
 
+    this.teamId = null
+    
     this.log(`NowDotenv for project '${this.projectName}' with prefix '${this.prefix}'`)
   }
 
@@ -59,6 +63,20 @@ export class NowDotenv {
     }
 
     return true
+  }
+
+  /** Load the teamId **/
+  private async getTeamId() {
+    if (this.options.team && !this.teamId) {
+      this.teamId = await this.apiGetTeamId(this.options.team)
+      this.log(`Team ID found for ${this.options.team}`)
+    }
+    return this.teamId
+  }
+
+  private async getTeamQueryString() {
+    const teamId = await this.getTeamId()
+    return teamId ? `?teamId=${teamId}` : ``
   }
 
   /** Synchronise secrets with now */
@@ -103,8 +121,23 @@ export class NowDotenv {
 
   /** API */
 
+  private async apiGetTeamId(team: any) {
+    const res = await fetch(`https://api.zeit.co/v1/teams?slug=${team}`, {
+      method: 'GET',
+      headers: this.headers,
+    })
+
+    if (res.ok) {
+      this.log(`GET teamId`)
+      return res.json().then((res: Team) => res.id)
+    }
+
+    throw Error(this.formatErr(res, `Cannot fetch team`))
+  }
+
   private async apiGetSecrets() {
-    const res = await fetch(`https://api.zeit.co/v2/now/secrets`, {
+    const teamQuery = await this.getTeamQueryString()
+    const res = await fetch(`https://api.zeit.co/v2/now/secrets${teamQuery}`, {
       method: 'GET',
       headers: this.headers,
     })
@@ -118,7 +151,8 @@ export class NowDotenv {
   }
 
   private async apiDeleteSecret(name: string) {
-    const res = await fetch(`https://api.zeit.co/v2/now/secrets/${name}`, {
+    const teamQuery = await this.getTeamQueryString()
+    const res = await fetch(`https://api.zeit.co/v2/now/secrets/${name}${teamQuery}`, {
       method: 'DELETE',
       headers: this.headers,
     })
@@ -132,7 +166,8 @@ export class NowDotenv {
   }
 
   private async apiCreateSecret(name: string, value: string) {
-    const res = await fetch(`https://api.zeit.co/v2/now/secrets`, {
+    const teamQuery = await this.getTeamQueryString()
+    const res = await fetch(`https://api.zeit.co/v2/now/secrets${teamQuery}`, {
       method: 'POST',
       headers: this.headers,
       body: JSON.stringify({
